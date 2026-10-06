@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ur3e_workcell">
+  <xacro:arg name="sim_gz" default="true"/>
+  <xacro:arg name="simulation_controllers" default="$(find ur3e_llm_control)/config/ros2_controllers.yaml"/>
+
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+  <xacro:include filename="$(find ur3e_llm_control)/description/simple_gripper.xacro"/>
+
+  <xacro:property name="ur_config" value="$(find ur_description)/config/ur3e"/>
+  <xacro:property name="initial_positions_file" value="$(find ur3e_llm_control)/config/initial_positions.yaml"/>
+
+  <link name="world"/>
+
+  <xacro:ur_robot
+    name="ur"
+    tf_prefix=""
+    parent="world"
+    joint_limits_parameters_file="$(find ur3e_llm_control)/config/ur3e_joint_limits.yaml"
+    kinematics_parameters_file="${ur_config}/default_kinematics.yaml"
+    physical_parameters_file="${ur_config}/physical_parameters.yaml"
+    visual_parameters_file="${ur_config}/visual_parameters.yaml"
+    ur_type="ur3e"
+    safety_limits="true"
+    safety_pos_margin="0.15"
+    safety_k_position="20"
+    use_fake_hardware="false"
+    sim_gazebo="false"
+    sim_ignition="$(arg sim_gz)"
+    initial_positions="${xacro.load_yaml(initial_positions_file)}">
+    <!-- The table top is z=0.70 m; mount the UR3e directly on it. -->
+    <origin xyz="-0.05 0 0.70" rpy="0 0 0"/>
+  </xacro:ur_robot>
+
+  <xacro:simple_gripper parent_link="tool0" sim_gz="$(arg sim_gz)"/>
+
+  <!-- ur_macro.xacro creates the ros2_control hardware tags but not the Gazebo system plugin. -->
+  <xacro:if value="$(arg sim_gz)">
+    <gazebo>
+      <plugin filename="libign_ros2_control-system.so" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+        <parameters>$(arg simulation_controllers)</parameters>
+        <controller_manager_node_name>controller_manager</controller_manager_node_name>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+</robot>

@@ -1,0 +1,22 @@
+robot_skill:
+  ros__parameters:
+    use_sim_time: true
+    object_pose_topic: /world/ur3e_workcell/dynamic_pose/info
+    planning_group: ur_manipulator
+    tool_link: tool0
+    grasp_offset: 0.09
+    table_clearance: 0.17
+    gripper_force: 5.0
+    grip_wait: 1.5
+    release_wait: 1.0
+    hold_check_seconds: 1.0
+    pose_timeout: 3.0
+    service_timeout: 20.0
+    execution_timeout: 120.0
+    velocity_scaling: 0.15
+    acceleration_scaling: 0.15
+    cartesian_step: 0.005
+    cartesian_speed: 0.03
+    max_cartesian_joint_speed: 0.35
+    placement_tolerance: 0.015
+    lift_tolerance: 0.015

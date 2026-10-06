@@ -1,0 +1,88 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Global Options:
+    Background Color: 38; 38; 42
+    Fixed Frame: world
+    Frame Rate: 30
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Table plane
+      Enabled: true
+      Cell Size: 0.1
+      Plane Cell Count: 20
+      Color: 100; 100; 105
+      Alpha: 0.45
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0.7
+    - Class: rviz_default_plugins/RobotModel
+      Name: UR3e + gripper
+      Enabled: true
+      Robot Description: robot_description
+      Visual Enabled: true
+      Collision Enabled: false
+      Alpha: 1
+    - Class: moveit_rviz_plugin/MotionPlanning
+      Name: MotionPlanning
+      Enabled: true
+      Robot Description: robot_description
+      Planning Scene Topic: monitored_planning_scene
+      Move Group Namespace: ""
+      Planning Request:
+        Planning Group: ur_manipulator
+        Query Goal State: true
+        Query Start State: false
+        Show Workspace: false
+        Start State Alpha: 1
+        Goal State Alpha: 1
+      Planned Path:
+        Trajectory Topic: /display_planned_path
+        Robot Alpha: 0.5
+        Show Robot Visual: true
+        Show Robot Collision: false
+        Loop Animation: false
+        State Display Time: 0.05 s
+      Scene Geometry:
+        Show Scene Geometry: true
+        Scene Alpha: 0.9
+      Scene Robot:
+        Robot Alpha: 1
+    - Class: rviz_default_plugins/Image
+      Name: Workcell camera
+      Enabled: true
+      Topic:
+        Value: /workcell_camera/image_raw
+        Reliability Policy: Best Effort
+        History Policy: Keep Last
+        Depth: 5
+      Normalize Range: true
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: false
+      Frame Timeout: 15
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Workcell view
+      Target Frame: world
+      Distance: 2.3
+      Pitch: 0.55
+      Yaw: 3.8
+      Focal Point:
+        X: 0.2
+        Y: 0
+        Z: 0.65
+Window Geometry:
+  Width: 1500
+  Height: 900

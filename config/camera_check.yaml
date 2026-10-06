@@ -1,0 +1,15 @@
+camera_check:
+  ros__parameters:
+    image_topic: /workcell_camera/image_raw
+    camera_info_topic: /workcell_camera/camera_info
+    output_topic: /camera_check/zones
+    debug_image_topic: /camera_check/image_debug
+    publish_rate: 2.0
+    image_timeout: 3.0
+    # Known upright box dimensions (metres); correct perspective at the top face.
+    object_height: 0.07
+    object_width: 0.05
+    # Separate opaque coloured boxes from the translucent zone backgrounds.
+    saturation_min: 175
+    value_min: 90
+    min_area_pixels: 80

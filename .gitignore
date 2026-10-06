@@ -1,0 +1,22 @@
+# Generated workspace and Python files
+build/
+install/
+log/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Credentials and local settings
+.secrets/
+.env
+.env.*
+.vscode/
+.idea/
+
+# Local verification outputs
+verification/
+*.log
+.DS_Store

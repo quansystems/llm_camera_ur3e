@@ -1,0 +1,6 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: ur3e_llm_control
+    relative_path: description/ur3e_with_gripper.urdf.xacro
+  srdf:
+    relative_path: config/ur3e_workcell.srdf

@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- A deliberately simple two-finger gripper made only from boxes/cylinders. -->
+  <xacro:macro name="simple_gripper" params="parent_link sim_gz:=true">
+    <!-- Geometry in metres, mass in kilograms. Change these values together;
+         visual, collision and solid-body inertia are derived automatically. -->
+    <xacro:property name="palm_radius" value="0.055"/>
+    <xacro:property name="palm_length" value="0.04"/>
+    <xacro:property name="palm_mass" value="0.35"/>
+    <xacro:property name="finger_width" value="0.018"/>
+    <xacro:property name="finger_thickness" value="0.016"/>
+    <xacro:property name="finger_length" value="0.08"/>
+    <xacro:property name="finger_mass" value="0.06"/>
+    <xacro:property name="open_gap" value="0.076"/>
+    <xacro:property name="finger_travel" value="0.032"/>
+    <!-- Target centre toward the tips: 5 mm table clearance for a 70 mm tall
+         box when tool0 +Z points down and this frame is at the box centre. -->
+    <xacro:property name="grasp_offset" value="0.09"/>
+
+    <link name="gripper_base_link">
+      <inertial>
+        <origin xyz="0 0 ${palm_length / 2}"/>
+        <mass value="${palm_mass}"/>
+        <inertia ixx="${palm_mass * (3 * palm_radius**2 + palm_length**2) / 12}"
+                 ixy="0" ixz="0"
+                 iyy="${palm_mass * (3 * palm_radius**2 + palm_length**2) / 12}"
+                 iyz="0" izz="${palm_mass * palm_radius**2 / 2}"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 ${palm_length / 2}"/>
+        <geometry><cylinder radius="${palm_radius}" length="${palm_length}"/></geometry>
+        <material name="gripper_dark"><color rgba="0.12 0.14 0.17 1"/></material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${palm_length / 2}"/>
+        <geometry><cylinder radius="${palm_radius}" length="${palm_length}"/></geometry>
+      </collision>
+    </link>
+
+    <!-- tool0 is at the UR flange centre; local +Z points out of the wrist.
+         The palm starts at z=0 so there is no floating mounting gap. -->
+    <joint name="tool0_to_gripper" type="fixed">
+      <parent link="${parent_link}"/>
+      <child link="gripper_base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <material name="finger_orange"><color rgba="0.95 0.45 0.08 1"/></material>
+    <xacro:macro name="simple_gripper_finger" params="side sign">
+      <link name="${side}_finger_link">
+        <inertial>
+          <origin xyz="0 0 ${finger_length / 2}"/>
+          <mass value="${finger_mass}"/>
+          <inertia ixx="${finger_mass * (finger_thickness**2 + finger_length**2) / 12}"
+                   ixy="0" ixz="0"
+                   iyy="${finger_mass * (finger_width**2 + finger_length**2) / 12}"
+                   iyz="0" izz="${finger_mass * (finger_width**2 + finger_thickness**2) / 12}"/>
+        </inertial>
+        <visual>
+          <origin xyz="0 0 ${finger_length / 2}"/>
+          <geometry><box size="${finger_width} ${finger_thickness} ${finger_length}"/></geometry>
+          <material name="finger_orange"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 ${finger_length / 2}"/>
+          <geometry><box size="${finger_width} ${finger_thickness} ${finger_length}"/></geometry>
+        </collision>
+      </link>
+      <joint name="${side}_finger_joint" type="prismatic">
+        <parent link="gripper_base_link"/>
+        <child link="${side}_finger_link"/>
+        <!-- Finger roots touch the palm face without overlapping its volume. -->
+        <origin xyz="0 ${sign * (open_gap + finger_thickness) / 2} ${palm_length}"/>
+        <axis xyz="0 ${-sign} 0"/>
+        <limit lower="0.0" upper="${finger_travel}" effort="5" velocity="0.04"/>
+        <dynamics damping="2.0" friction="0.02"/>
+      </joint>
+    </xacro:macro>
+    <xacro:simple_gripper_finger side="left" sign="${1}"/>
+    <xacro:simple_gripper_finger side="right" sign="${-1}"/>
+
+    <!-- A TF reference for the box centre, with no physical collision. -->
+    <link name="gripper_tcp"/>
+    <joint name="gripper_tcp_joint" type="fixed">
+      <parent link="gripper_base_link"/>
+      <child link="gripper_tcp"/>
+      <origin xyz="0 0 ${grasp_offset}" rpy="0 0 0"/>
+    </joint>
+
+    <ros2_control name="GripperSystem" type="system">
+      <hardware>
+        <xacro:if value="${sim_gz}">
+          <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${sim_gz}">
+          <plugin>mock_components/GenericSystem</plugin>
+        </xacro:unless>
+      </hardware>
+      <joint name="left_finger_joint">
+        <!-- Direct constant drive. Position state is only for robot TF/RViz;
+             opening and closing never read position or force feedback. -->
+        <command_interface name="effort">
+          <param name="min">-5.0</param>
+          <param name="max">5.0</param>
+        </command_interface>
+        <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      </joint>
+      <joint name="right_finger_joint">
+        <command_interface name="effort">
+          <param name="min">-5.0</param>
+          <param name="max">5.0</param>
+        </command_interface>
+        <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      </joint>
+    </ros2_control>
+
+    <gazebo reference="gripper_base_link">
+      <material>Gazebo/DarkGrey</material>
+      <selfCollide>false</selfCollide>
+    </gazebo>
+    <gazebo reference="left_finger_link">
+      <material>Gazebo/Orange</material>
+      <mu1>3.0</mu1><mu2>20.0</mu2>
+    </gazebo>
+    <gazebo reference="right_finger_link">
+      <material>Gazebo/Orange</material>
+      <mu1>3.0</mu1><mu2>20.0</mu2>
+    </gazebo>
+  </xacro:macro>
+</robot>
